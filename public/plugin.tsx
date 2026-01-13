@@ -1,21 +1,30 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 import { i18n } from '@osd/i18n';
 import { AppMountParameters, CoreSetup, CoreStart, Plugin } from '../../../src/core/public';
 import { ScopdAiPluginSetup, ScopdAiPluginStart, AppPluginStartDependencies } from './types';
 import { PLUGIN_NAME } from '../common';
+import { AiFloatingButton } from './ui/ai_floating_button';
 
-export class ScopdAiPlugin implements Plugin<ScopdAiPluginSetup, ScopdAiPluginStart> {
+
+export class ScopdAiPlugin
+  implements Plugin<ScopdAiPluginSetup, ScopdAiPluginStart>
+{
   public setup(core: CoreSetup): ScopdAiPluginSetup {
-    // Register an application into the side navigation menu
+    // Sidebar application (optional)
     core.application.register({
       id: 'scopdAi',
       title: PLUGIN_NAME,
       async mount(params: AppMountParameters) {
-        // Load application bundle
         const { renderApp } = await import('./application');
-        // Get start services as specified in opensearch_dashboards.json
         const [coreStart, depsStart] = await core.getStartServices();
-        // Render the application
-        return renderApp(coreStart, depsStart as AppPluginStartDependencies, params);
+
+        return renderApp(
+          coreStart,
+          depsStart as AppPluginStartDependencies,
+          params
+        );
       },
     });
 
@@ -33,6 +42,20 @@ export class ScopdAiPlugin implements Plugin<ScopdAiPluginSetup, ScopdAiPluginSt
   }
 
   public start(core: CoreStart): ScopdAiPluginStart {
+    core.chrome.navControls.registerRight({
+      order: 1000,
+      mount: (el) => {
+        ReactDOM.render(
+          <AiFloatingButton core={core} />,
+          el
+        );
+
+        return () => {
+          ReactDOM.unmountComponentAtNode(el);
+        };
+      },
+    });
+
     return {};
   }
 
