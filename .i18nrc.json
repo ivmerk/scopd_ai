@@ -1,0 +1,7 @@
+{
+  "prefix": "scopdAi",
+  "paths": {
+    "scopdAi": "."
+  },
+  "translations": ["translations/ja-JP.json"]
+}
