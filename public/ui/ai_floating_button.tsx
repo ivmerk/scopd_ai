@@ -7,6 +7,11 @@ import {
   EuiTitle,
   EuiSpacer,
   EuiText,
+  EuiFlyoutFooter,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiTextArea,
+  EuiButton,
 } from '@elastic/eui';
 import { CoreSetup } from '../../../../src/core/public';
 
@@ -14,9 +19,14 @@ interface Props {
   core: CoreSetup;
 }
 
-export const AiFloatingButton: React.FC<Props> = ({ core }) => { 
-  console.log('AiFloatingButton mounted with core:', core);
+export const AiFloatingButton: React.FC<Props> = ({ core }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+
+  const handleReply = () => {
+    console.log('Reply submitted:', inputValue);
+    setInputValue('');
+  };
 
   return (
     <>
@@ -72,6 +82,24 @@ export const AiFloatingButton: React.FC<Props> = ({ core }) => {
               <small>Coming soon…</small>
             </EuiText>
           </EuiFlyoutBody>
+            <EuiFlyoutFooter>
+             <EuiFlexGroup responsive={false} alignItems="flexEnd">
+              <EuiFlexItem>
+                <EuiTextArea
+                  fullWidth
+                  placeholder="Ask the AI assistant..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  rows={3}
+                />
+              </EuiFlexItem>
+              <EuiFlexItem grow={false}>
+                <EuiButton fill onClick={handleReply} disabled={!inputValue}>
+                  Reply
+                </EuiButton>
+              </EuiFlexItem>
+            </EuiFlexGroup>
+          </EuiFlyoutFooter>
         </EuiFlyout>
       )}
     </>
