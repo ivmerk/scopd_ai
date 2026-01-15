@@ -14,6 +14,7 @@ import {
   EuiButton,
 } from '@elastic/eui';
 import { CoreSetup } from '../../../../src/core/public';
+import './ui.scss';
 
 interface Props {
   core: CoreSetup;
@@ -41,18 +42,8 @@ export const AiFloatingButton: React.FC<Props> = ({ core }) => {
         <EuiButtonIcon
           iconType="help"
           aria-label="AI Assistant"
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            zIndex: 9999,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            backgroundColor: '#006BB4',
-            color: 'white',
-            borderRadius: '50%',
-            width: '50px',
-            height: '50px'
-          }}
+          className="aiFloatingButton"
+
           onClick={() => setIsOpen(!isOpen)}
         />
       </div>
