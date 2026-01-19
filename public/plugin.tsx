@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { i18n } from '@osd/i18n/target';
+import { i18n } from '@osd/i18n';
 import { AppMountParameters, CoreSetup, CoreStart, Plugin } from '../../../core/public';
 import { ScopdAiPluginSetup, ScopdAiPluginStart, AppPluginStartDependencies } from './types';
 import { PLUGIN_NAME } from '../common';
@@ -12,23 +12,6 @@ export class ScopdAiPlugin
   implements Plugin<ScopdAiPluginSetup, ScopdAiPluginStart>
 {
   public setup(core: CoreSetup): ScopdAiPluginSetup {
-    // Sidebar application (optional)
-    core.application.register({
-      id: 'scopdAi',
-      title: PLUGIN_NAME,
-      async mount(params: AppMountParameters) {
-        const { renderApp } = await import('./application');
-        const [coreStart, depsStart] = await core.getStartServices();
-
-        return renderApp(
-          coreStart,
-          depsStart as AppPluginStartDependencies,
-          params
-        );
-      },
-    });
-
-    // Return methods that should be available to other plugins
     return {
       getGreeting() {
         return i18n.translate('scopdAi.greetingText', {
