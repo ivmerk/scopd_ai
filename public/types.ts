@@ -1,4 +1,4 @@
-import { NavigationPublicPluginStart } from '../../../src/plugins/navigation/public';
+import { NavigationPublicPluginStart } from '../../navigation/public';
 
 export interface ScopdAiPluginSetup {
   getGreeting: () => string;

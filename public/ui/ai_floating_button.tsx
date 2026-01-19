@@ -12,21 +12,41 @@ import {
   EuiFlexItem,
   EuiTextArea,
   EuiButton,
+  EuiPanel,
+  EuiCodeBlock,
+  EuiCallOut,
 } from '@elastic/eui';
-import { CoreSetup } from '../../../../src/core/public';
+import { CoreStart } from '../../../../core/public';
 import './ui.scss';
 
 interface Props {
-  core: CoreSetup;
+  http: CoreStart['http'];
 }
 
-export const AiFloatingButton: React.FC<Props> = ({ core }) => {
+export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleReply = () => {
-    console.log('Reply submitted:', inputValue);
-    setInputValue('');
+  const handleReply = async () => {
+    if (!inputValue) return;
+    setIsLoading(true);
+    setError(null);
+    setAiResponse('');
+    try {
+      const result = await http.post('/api/scopd-ai/ask', {
+        fullPrompt: inputValue
+      });
+      setAiResponse(result.answer);
+    } catch (e: any) {
+      setError(e.message || 'Ошибка соединения с сервером');
+      console.error('Error in handleReply:', e);
+    } finally {
+      setIsLoading(false);
+      setInputValue('');
+    }
   };
 
   return (
@@ -68,10 +88,24 @@ export const AiFloatingButton: React.FC<Props> = ({ core }) => {
 
             <EuiSpacer />
 
-            {/* TODO: chat UI / actions */}
-            <EuiText color="subdued">
-              <small>Coming soon…</small>
-            </EuiText>
+            {error && (
+              <EuiCallOut title="Ошибка" color="danger" iconType="alert">
+                <p>{error}</p>
+              </EuiCallOut>
+            )}
+            {aiResponse && (
+              <EuiPanel color="subdued">
+                <EuiTitle size="s"><h3>Анализ AI:</h3></EuiTitle>
+                <EuiSpacer size="s" />
+                <EuiCodeBlock
+                  language="markdown"
+                  paddingSize="m"
+                  isCopyable
+                  whiteSpace="pre-wrap">
+                  {aiResponse}
+                </EuiCodeBlock>
+              </EuiPanel>
+            )}
           </EuiFlyoutBody>
             <EuiFlyoutFooter>
              <EuiFlexGroup responsive={false} alignItems="flexEnd">

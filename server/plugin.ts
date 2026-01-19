@@ -4,7 +4,7 @@ import {
   CoreStart,
   Plugin,
   Logger,
-} from '../../../src/core/server';
+} from '../../../core/server';
 
 import { ScopdAiPluginSetup, ScopdAiPluginStart } from './types';
 import { defineRoutes } from './routes';
@@ -21,7 +21,9 @@ export class ScopdAiPlugin implements Plugin<ScopdAiPluginSetup, ScopdAiPluginSt
     const router = core.http.createRouter();
 
     // Register server side APIs
-    defineRoutes(router);
+    defineRoutes(router, {
+      logger: this.logger
+    });
 
     return {};
   }

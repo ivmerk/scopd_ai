@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { i18n } from '@osd/i18n';
-import { FormattedMessage, I18nProvider } from '@osd/i18n/react';
+import { i18n } from '@osd/i18n/target';
+import { FormattedMessage, I18nProvider } from 'packages/osd-i18n/src/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 import {
@@ -16,8 +16,8 @@ import {
   EuiText,
 } from '@elastic/eui';
 
-import { CoreStart } from '../../../../src/core/public';
-import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/public';
+import { CoreStart } from '../../../../core/public';
+import { NavigationPublicPluginStart } from '../../../navigation/public';
 
 import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
 

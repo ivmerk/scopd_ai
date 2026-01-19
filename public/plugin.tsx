@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { i18n } from '@osd/i18n';
-import { AppMountParameters, CoreSetup, CoreStart, Plugin } from '../../../src/core/public';
+import { i18n } from '@osd/i18n/target';
+import { AppMountParameters, CoreSetup, CoreStart, Plugin } from '../../../core/public';
 import { ScopdAiPluginSetup, ScopdAiPluginStart, AppPluginStartDependencies } from './types';
 import { PLUGIN_NAME } from '../common';
 import { AiFloatingButton } from './ui/ai_floating_button';
