@@ -1,14 +1,15 @@
+import { Observable } from 'rxjs';
+import { first } from 'rxjs/operators';
 import { schema } from '@osd/config-schema/target/out';
 import { IRouter } from '../../../../core/server';
 import { Logger } from '../../../../core/server';
+import { ScopdAiPluginConfig } from '../types';
 
-// ВАЖНО: Укажите здесь ваш ключ.
-// В идеале его нужно вынести в конфиг, но для простоты оставим здесь.
-const OPENAI_API_KEY = 'sk-proj-xxxxxxxxxxxxxxxxxxxxxxxx';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 interface RouteDependencies {
   logger: Logger;
+  config$: Observable<ScopdAiPluginConfig>;
 }
 
 export function defineRoutes(router: IRouter, deps: RouteDependencies) {
@@ -23,11 +24,32 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
     },
     async (context, request, response) => {
       try {
-        const { fullPrompt } = request.body;
+        // Add validation check for request body
+        if (!request.body) {
+          return response.badRequest({
+            body: 'Request body is required'
+          });
+        }
 
-        // 1. Формируем тело запроса вручную
+        const { fullPrompt } = request.body as { fullPrompt: string };
+
+        // Ensure fullPrompt is provided
+        if (!fullPrompt) {
+          return response.badRequest({
+            body: 'fullPrompt is required in the request body'
+          });
+        }
+        const config = await deps.config$.pipe(first()).toPromise();
+        if (!config || !config.openAiKey) {
+          return response.customError({
+            statusCode: 500,
+            body: 'OpenAI API key is not configured in opensearch_dashboards.yml',
+          });
+        }
+
+        // Format the request for OpenAI
         const requestBody = {
-          model: "gpt-4o", // или "gpt-3.5-turbo", если нужно дешевле
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -47,7 +69,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`
+            'Authorization': `Bearer ${config.openAiKey}`
           },
           body: JSON.stringify(requestBody)
         });

@@ -1,3 +1,4 @@
+import  { Observable } from 'rxjs';
 import {
   PluginInitializerContext,
   CoreSetup,
@@ -6,14 +7,16 @@ import {
   Logger,
 } from '../../../core/server';
 
-import { ScopdAiPluginSetup, ScopdAiPluginStart } from './types';
+import { ScopdAiPluginSetup, ScopdAiPluginStart, ScopdAiPluginConfig } from './types';
 import { defineRoutes } from './routes';
 
 export class ScopdAiPlugin implements Plugin<ScopdAiPluginSetup, ScopdAiPluginStart> {
   private readonly logger: Logger;
+  private readonly config$: Observable<ScopdAiPluginConfig>;
 
   constructor(initializerContext: PluginInitializerContext) {
     this.logger = initializerContext.logger.get();
+    this.config$ = initializerContext.config.create<ScopdAiPluginConfig>();
   }
 
   public setup(core: CoreSetup) {
@@ -22,7 +25,8 @@ export class ScopdAiPlugin implements Plugin<ScopdAiPluginSetup, ScopdAiPluginSt
 
     // Register server side APIs
     defineRoutes(router, {
-      logger: this.logger
+      logger: this.logger,
+      config$: this.config$,
     });
 
     return {};
