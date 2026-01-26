@@ -29,7 +29,7 @@ export class ScopdAiPlugin
       order: 1000,
       mount: (el) => {
         ReactDOM.render(
-          <AiFloatingButton core={core} />,
+          <AiFloatingButton http={core.http} />,
           el
         );
 
