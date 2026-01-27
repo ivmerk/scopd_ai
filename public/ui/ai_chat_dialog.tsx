@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   EuiFlyout,
   EuiFlyoutHeader,
@@ -16,6 +16,9 @@ import {
   EuiCallOut,
   EuiButtonEmpty,
   EuiSelect,
+  EuiPopover,
+  EuiFormRow,
+  EuiFieldPassword,
 } from '@elastic/eui';
 
 export interface ChatMessage {
@@ -34,6 +37,7 @@ interface AiChatDialogProps {
   messages: ChatMessage[];
   selectedModel: string;
   onModelChange: (model: string) => void;
+  onSaveToken: (token: string) => Promise<void>;
 }
 
 export const AiChatDialog: React.FC<AiChatDialogProps> = ({
@@ -47,10 +51,18 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   messages,
   selectedModel,
   onModelChange,
+  onSaveToken,
 }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [newToken, setNewToken] = useState('');
 
+  const handleSaveToken = async () => {
+    await onSaveToken(newToken);
+    setNewToken('');
+    setIsSettingsOpen(false);
+  };
   useEffect(() =>{
     messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
   }, [messages, isLoading, error])
@@ -81,8 +93,38 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiButtonEmpty iconType="trash" color="text" size="s" onClick={onClear}>
-              Clear chat
+              Clear
             </EuiButtonEmpty>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiPopover
+              button={
+                <EuiButtonEmpty
+                  iconType="gear"
+                  color="text"
+                  size="s"
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                >
+                </EuiButtonEmpty>
+              }
+              isOpen={isSettingsOpen}
+              closePopover={() => setIsSettingsOpen(false)}
+              anchorPosition="downRight"
+            >
+              <div style={{ padding: '16px', width: '300px' }}>
+                <EuiTitle size="xs"><h3>API Settings</h3></EuiTitle>
+                <EuiSpacer size="s" />
+                <EuiFormRow label="OpenAI Token" helpText="Token will be saved securely on the server.">
+                  <EuiFieldPassword
+                    value={newToken}
+                    onChange={(e) => setNewToken(e.target.value)}
+                    placeholder="sk-..."
+                  />
+                </EuiFormRow>
+                <EuiSpacer size="s" />
+                <EuiButton fullWidth size="s" fill onClick={handleSaveToken}>Save Token</EuiButton>
+              </div>
+            </EuiPopover>
           </EuiFlexItem>
         </EuiFlexGroup>
       </EuiFlyoutHeader>

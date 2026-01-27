@@ -47,6 +47,21 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
     setError(null);
   };
 
+  const handleSaveToken = async (token: string) => {
+    try {
+      await http.post('/api/scopd-ai/token', {
+        body: JSON.stringify({ token }),
+        headers: {
+          'Content-Type': 'application/json',
+          'kbn-xsrf': 'true'
+        },
+      });
+    } catch (e: any) {
+      console.error('Error saving token:', e);
+      setError('Failed to save settings: ' + (e.body?.message || e.message));
+    }
+  };
+
   return (
     <>
       <div
@@ -82,6 +97,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
         messages={messages}
         selectedModel={selectedModel}
         onModelChange={setSelectedModel}
+        onSaveToken={handleSaveToken}
       />
       }
     </>

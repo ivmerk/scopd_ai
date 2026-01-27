@@ -13,6 +13,25 @@ interface RouteDependencies {
 }
 
 export function defineRoutes(router: IRouter, deps: RouteDependencies) {
+  // Route to save the token persistently
+  router.post(
+    {
+      path: '/api/scopd-ai/token',
+      validate: {
+        body: schema.object({
+         token: schema.string(),
+        }),
+      },
+   },
+  async (context, request, response) => {
+     try {
+        console.log(request.body.token);
+       return response.ok({ body: { success: true } });
+      } catch (error) {
+        return response.internalError({ body: `Failed to save token: ${error.message}` });
+      }
+   }
+  );
   router.post(
     {
       path: '/api/scopd-ai/ask',
