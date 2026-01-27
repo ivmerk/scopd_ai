@@ -5,6 +5,12 @@ import { IRouter } from '../../../../core/server';
 import { Logger } from '../../../../core/server';
 import { ScopdAiPluginConfig } from '../types';
 
+interface SavedConfig {
+  attributes: {
+    token: string;
+  };
+}
+
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 interface RouteDependencies {
@@ -13,6 +19,26 @@ interface RouteDependencies {
 }
 
 export function defineRoutes(router: IRouter, deps: RouteDependencies) {
+  // Route to get the saved token
+  router.get(
+    {
+      path: '/api/scopd-ai/token',
+      validate: {},
+    },
+    async (context, request, response) => {
+      try {
+        const savedObject = await context.core.savedObjects.client.get('scopd-ai-configuration', 'default');
+        const savedConfig = savedObject as SavedConfig;
+        return response.ok({ body: { token: savedConfig.attributes.token } });
+      } catch (error) {
+        if (error.statusCode === 404) {
+          return response.ok({ body: { token: null } });
+        }
+        return response.internalError({ body: `Failed to retrieve token: ${error.message}` });
+      }
+    }
+  );
+
   // Route to save the token persistently
   router.post(
     {
@@ -25,7 +51,10 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
    },
   async (context, request, response) => {
      try {
-        console.log(request.body.token);
+        const savedObject = await context.core.savedObjects.client.create('scopd-ai-configuration',
+          {token: (request.body as { token: string }).token},
+          {id: 'default', overwrite: true}
+        );
        return response.ok({ body: { success: true } });
       } catch (error) {
         return response.internalError({ body: `Failed to save token: ${error.message}` });
@@ -59,11 +88,19 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
             body: 'fullPrompt is required in the request body'
           });
         }
+
+        let apiKey = '';
+        try {
+          const savedConfig = await context.core.savedObjects.client.get('scopd-ai-configuration', 'default') as SavedConfig;
+          apiKey = savedConfig.attributes.token || '';
+        } catch (e) { /* ignore */ }
+
         const config = await deps.config$.pipe(first()).toPromise();
-        if (!config || !config.openAiKey) {
+
+        if (!apiKey && (!config || !config.openAiKey)) {
           return response.customError({
             statusCode: 500,
-            body: 'OpenAI API key is not configured in opensearch_dashboards.yml',
+            body: 'OpenAI API key is not configured in settings or opensearch_dashboards.yml',
           });
         }
 

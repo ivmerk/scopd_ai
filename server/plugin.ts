@@ -23,6 +23,17 @@ export class ScopdAiPlugin implements Plugin<ScopdAiPluginSetup, ScopdAiPluginSt
     this.logger.debug('scopdAi: Setup');
     const router = core.http.createRouter();
 
+    core.savedObjects.registerType({
+      name: 'scopd-ai-configuration',
+      hidden: false,
+      namespaceType: 'agnostic',
+      mappings: {
+        properties: {
+          token: { type: 'text' },
+        },
+      },
+    });
+
     // Register server side APIs
     defineRoutes(router, {
       logger: this.logger,
