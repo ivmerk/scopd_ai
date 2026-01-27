@@ -14,6 +14,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
 
   const handleReply = async () => {
     if (!inputValue) return;
@@ -25,7 +26,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
 
     try {
       const result = await http.post('/api/scopd-ai/ask', {
-        body: JSON.stringify({ fullPrompt: currentPrompt }),
+        body: JSON.stringify({ fullPrompt: currentPrompt, model: selectedModel }),
         headers: {
           'Content-Type': 'application/json',
           'kbn-xsrf': 'true'  // Required for OpenSearch Dashboards API requests
@@ -79,6 +80,8 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
         isLoading={isLoading}
         error={error}
         messages={messages}
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
       />
       }
     </>

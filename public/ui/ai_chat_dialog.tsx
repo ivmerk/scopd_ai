@@ -15,6 +15,7 @@ import {
   EuiCodeBlock,
   EuiCallOut,
   EuiButtonEmpty,
+  EuiSelect,
 } from '@elastic/eui';
 
 export interface ChatMessage {
@@ -31,6 +32,8 @@ interface AiChatDialogProps {
   isLoading: boolean;
   error: string | null;
   messages: ChatMessage[];
+  selectedModel: string;
+  onModelChange: (model: string) => void;
 }
 
 export const AiChatDialog: React.FC<AiChatDialogProps> = ({
@@ -42,6 +45,8 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   isLoading,
   error,
   messages,
+  selectedModel,
+  onModelChange,
 }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -56,11 +61,23 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
       aria-labelledby="aiChatDialogTitle"
     >
       <EuiFlyoutHeader hasBorder>
-        <EuiFlexGroup justifyContent="spaceBetween" alignItems="center">
+        <EuiFlexGroup justifyContent="spaceBetween" alignItems="center" responsive={false}>
           <EuiFlexItem>
-            <EuiTitle size="m">
-              <h2 id="aiChatDialogTitle">AI Assistant</h2>
+            <EuiTitle size="s">
+              <h4 id="aiChatDialogTitle"  style={{ whiteSpace: 'nowrap', fontSize: '14px'}}>AI Assistant</h4>
             </EuiTitle>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiSelect
+              options={[
+                { value: 'gpt-4o-mini', text: '4o-mini' },
+                { value: 'gpt-4o', text: '4o' },
+                { value: 'o1-mini', text: 'o1-mini' },
+              ]}
+              value={selectedModel}
+              onChange={(e) => onModelChange(e.target.value)}
+              compressed
+            />
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiButtonEmpty iconType="trash" color="text" size="s" onClick={onClear}>

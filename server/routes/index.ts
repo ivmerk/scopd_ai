@@ -19,6 +19,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
       validate: {
         body: schema.object({
           fullPrompt: schema.string(),
+          model: schema.string(),
         }),
       },
     },
@@ -31,7 +32,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           });
         }
 
-        const { fullPrompt } = request.body as { fullPrompt: string };
+        const { fullPrompt, model } = request.body as { fullPrompt: string; model: string };
 
         // Ensure fullPrompt is provided
         if (!fullPrompt) {
@@ -49,7 +50,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
 
         // Format the request for OpenAI
         const requestBody = {
-          model: "gpt-4o",
+          model: model,
           messages: [
             {
               role: "system",
