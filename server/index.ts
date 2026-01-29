@@ -6,9 +6,7 @@ import { ScopdAiPlugin } from './plugin';
 // as well as, OpenSearch Dashboards Platform `plugin()` initializer.
 
 export const config = {
-  schema: schema.object({
-    openAiKey: schema.string({ defaultValue: '' }),
-  }),
+  schema: schema.object({}),
 };
 
 export function plugin(initializerContext: PluginInitializerContext) {

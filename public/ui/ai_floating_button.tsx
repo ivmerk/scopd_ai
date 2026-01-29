@@ -15,6 +15,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+  const [missingToken, setMissingToken] = useState(false);
 
   const handleReply = async () => {
     if (!inputValue) return;
@@ -62,6 +63,18 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
     }
   };
 
+  const toggleOpen = async () => {
+    if (!isOpen) {
+      try {
+        const result = await http.get('/api/scopd-ai/token');
+        setMissingToken(!result.token);
+      } catch (e) {
+        setMissingToken(true);
+      }
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
     <>
       <div
@@ -76,7 +89,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
           iconType="machineLearningApp"
           size="m"
           aria-label="Open AI Assistant"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleOpen}
           style={{
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             backgroundColor: '#006BB4',
@@ -98,6 +111,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
         selectedModel={selectedModel}
         onModelChange={setSelectedModel}
         onSaveToken={handleSaveToken}
+        initialSettingsOpen={missingToken}
       />
       }
     </>

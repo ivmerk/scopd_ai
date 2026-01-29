@@ -1,9 +1,6 @@
-import { Observable } from 'rxjs';
-import { first } from 'rxjs/operators';
 import { schema } from '@osd/config-schema/target/out';
 import { IRouter } from '../../../../core/server';
 import { Logger } from '../../../../core/server';
-import { ScopdAiPluginConfig } from '../types';
 
 interface SavedConfig {
   attributes: {
@@ -15,7 +12,6 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 interface RouteDependencies {
   logger: Logger;
-  config$: Observable<ScopdAiPluginConfig>;
 }
 
 export function defineRoutes(router: IRouter, deps: RouteDependencies) {
@@ -95,12 +91,10 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           apiKey = savedConfig.attributes.token || '';
         } catch (e) { /* ignore */ }
 
-        const config = await deps.config$.pipe(first()).toPromise();
-
-        if (!apiKey && (!config || !config.openAiKey)) {
+        if (!apiKey) {
           return response.customError({
             statusCode: 500,
-            body: 'OpenAI API key is not configured in settings or opensearch_dashboards.yml',
+            body: 'OpenAI API key is not configured in settings',
           });
         }
 
@@ -126,7 +120,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${config.openAiKey}`
+            'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify(requestBody)
         });

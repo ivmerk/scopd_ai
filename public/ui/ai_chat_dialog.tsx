@@ -38,6 +38,7 @@ interface AiChatDialogProps {
   selectedModel: string;
   onModelChange: (model: string) => void;
   onSaveToken: (token: string) => Promise<void>;
+  initialSettingsOpen?: boolean;
 }
 
 export const AiChatDialog: React.FC<AiChatDialogProps> = ({
@@ -51,7 +52,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   messages,
   selectedModel,
   onModelChange,
-  onSaveToken,
+  onSaveToken, initialSettingsOpen = false,
 }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,7 +62,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   const handleSaveToken = async () => {
     await onSaveToken(newToken);
     setNewToken('');
-    setIsSettingsOpen(false);
+    setIsSettingsOpen(initialSettingsOpen);
   };
   useEffect(() =>{
     messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
