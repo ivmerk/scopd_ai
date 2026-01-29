@@ -79,7 +79,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
               <h4 id="aiChatDialogTitle"  style={{ whiteSpace: 'nowrap', fontSize: '14px'}}>AI Assistant</h4>
             </EuiTitle>
           </EuiFlexItem>
-          <EuiFlexItem grow={false}>
+          <EuiFlexItem grow={false} style={{minWidth: '90px'}}>
             <EuiSelect
               options={[
                 { value: 'gpt-4o-mini', text: '4o-mini' },
