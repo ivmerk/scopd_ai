@@ -64,6 +64,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
         body: schema.object({
           fullPrompt: schema.string(),
           model: schema.string(),
+          images: schema.maybe(schema.arrayOf(schema.any())),
         }),
       },
     },
@@ -76,7 +77,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           });
         }
 
-        const { fullPrompt, model } = request.body as { fullPrompt: string; model: string };
+        const { fullPrompt, model, images } = request.body as { fullPrompt: string; model: string; images?: any[] };
 
         // Ensure fullPrompt is provided
         if (!fullPrompt) {
@@ -106,10 +107,20 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
               role: "system",
               content: "You are a senior SecOps analyst using Wazuh. Analyze the data provided by the user. Be concise, technical, and format output in Markdown."
             },
-            {
-              role: "user",
-              content: fullPrompt
-            }
+            ...(images && images.length > 0
+              ? [
+                  {
+                    role: "user",
+                    content: [
+                      { type: "text", text: fullPrompt },
+                      ...images
+                    ]
+                  }
+                ]
+              : [
+                  { role: "user", content: fullPrompt }
+                ]
+            )
           ],
           temperature: 0.7
         };

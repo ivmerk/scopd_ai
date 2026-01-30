@@ -19,6 +19,8 @@ import {
   EuiPopover,
   EuiFormRow,
   EuiFieldPassword,
+  EuiFilePicker,
+  EuiBadge,
 } from '@elastic/eui';
 
 export interface ChatMessage {
@@ -39,6 +41,8 @@ interface AiChatDialogProps {
   onModelChange: (model: string) => void;
   onSaveToken: (token: string) => Promise<void>;
   initialSettingsOpen?: boolean;
+  selectedImages: File[];
+  onImagesChange: (files: File[]) => void;
 }
 
 export const AiChatDialog: React.FC<AiChatDialogProps> = ({
@@ -53,17 +57,55 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   selectedModel,
   onModelChange,
   onSaveToken, initialSettingsOpen = false,
+  selectedImages,
+  onImagesChange
 }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [newToken, setNewToken] = useState('');
+  const [filePickerKey, setFilePickerKey] = useState(0);
 
   const handleSaveToken = async () => {
     await onSaveToken(newToken);
     setNewToken('');
     setIsSettingsOpen(initialSettingsOpen);
   };
+
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!supportsImages(selectedModel)) return;
+    const items = e.clipboardData.items;
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    if (files.length > 0) {
+      e.preventDefault();
+      onImagesChange([...selectedImages, ...files]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = [...selectedImages];
+    newImages.splice(index, 1);
+    onImagesChange(newImages);
+  };
+
+  const onFilePickerChange = (files: FileList | null) => {
+    if (files && files.length > 0) {
+      onImagesChange([...selectedImages, ...Array.from(files)]);
+      setFilePickerKey((prev) => prev + 1);
+    }
+  };
+
+  const supportsImages = (model: string) => {
+    return model === 'gpt-4o' || model === 'gpt-4o-mini';
+  };
+
   useEffect(() =>{
     messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
   }, [messages, isLoading, error])
@@ -180,9 +222,39 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         <div ref={messagesEndRef} />
       </EuiFlyoutBody>
       <EuiFlyoutFooter>
+        {supportsImages(selectedModel) && (
+          <EuiFormRow label="Attach Images" fullWidth>
+            <>
+              {selectedImages.length > 0 && (
+                <EuiFlexGroup wrap responsive={false} gutterSize="xs" style={{ marginBottom: '8px' }}>
+                  {selectedImages.map((file, i) => (
+                    <EuiFlexItem grow={false} key={i}>
+                      <EuiBadge
+                        iconType="cross"
+                        iconSide="right"
+                        iconOnClick={() => removeImage(i)}
+                        iconOnClickAriaLabel="Remove image"
+                      >
+                        {file.name}
+                      </EuiBadge>
+                    </EuiFlexItem>
+                  ))}
+                </EuiFlexGroup>
+              )}
+              <EuiFilePicker
+                key={filePickerKey}
+                multiple
+                display="default"
+                initialPromptText={selectedImages.length > 0 ? "Add more images" : "Select images"}
+                onChange={onFilePickerChange}
+              />
+            </>
+          </EuiFormRow>
+        )}
         <EuiFlexGroup gutterSize="s">
           <EuiFlexItem>
-            <EuiTextArea
+            {selectedModel === 'o1-mini' ? (
+              <EuiTextArea
               placeholder="Type your message..."
               value={inputValue}
               onChange={onInputChange}
@@ -194,7 +266,22 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 }
               }}
               disabled={isLoading}
-            />
+            /> ) : (
+
+              <EuiTextArea
+                placeholder="Type your message or paste an image from clipboard..."
+                value={inputValue}
+                onChange={onInputChange}
+                fullWidth
+                onPaste={handlePaste}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onSend();
+                  }
+                }}
+                disabled={isLoading}
+            />)}
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiButton
@@ -211,3 +298,4 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
     </EuiFlyout>
   );
 };
+

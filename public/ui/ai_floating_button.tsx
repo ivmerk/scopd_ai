@@ -16,6 +16,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const [missingToken, setMissingToken] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   const handleReply = async () => {
     if (!inputValue) return;
@@ -27,7 +28,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
 
     try {
       const result = await http.post('/api/scopd-ai/ask', {
-        body: JSON.stringify({ fullPrompt: currentPrompt, model: selectedModel }),
+        body: JSON.stringify({ fullPrompt: currentPrompt, model: selectedModel, images: await processImagesForApi(selectedImages) }),
         headers: {
           'Content-Type': 'application/json',
           'kbn-xsrf': 'true'  // Required for OpenSearch Dashboards API requests
@@ -41,6 +42,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
     } finally {
       setIsLoading(false);
     }
+    setSelectedImages([]);
   };
 
   const handleClear = () => {
@@ -74,6 +76,29 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
     }
     setIsOpen(!isOpen);
   };
+
+
+const processImagesForApi = async (images: File[]): Promise<any[]> => {
+  if (!images.length) return [];
+
+  const processedImages = [];
+for (const image of images) {
+    const base64 = await fileToBase64(image);
+    processedImages.push({
+      type: 'image_url',
+      image_url: { url: `data:${image.type};base64,${base64}` }
+    });
+  }
+  return processedImages;
+};
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
 
   return (
     <>
@@ -112,6 +137,8 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
         onModelChange={setSelectedModel}
         onSaveToken={handleSaveToken}
         initialSettingsOpen={missingToken}
+        selectedImages={selectedImages}
+        onImagesChange={setSelectedImages}
       />
       }
     </>
