@@ -62,7 +62,10 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
       path: '/api/scopd-ai/ask',
       validate: {
         body: schema.object({
-          fullPrompt: schema.string(),
+          history: schema.arrayOf(schema.object({
+            role: schema.string(),
+            content: schema.string(),
+          })),
           model: schema.string(),
           images: schema.maybe(schema.arrayOf(schema.any())),
         }),
@@ -77,12 +80,11 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           });
         }
 
-        const { fullPrompt, model, images } = request.body as { fullPrompt: string; model: string; images?: any[] };
+        const { history, model, images } = request.body as { history: Array<{role: string; content: string}>; model: string; images?: any[] };
 
-        // Ensure fullPrompt is provided
-        if (!fullPrompt) {
+        if (!history || history.length === 0) {
           return response.badRequest({
-            body: 'fullPrompt is required in the request body'
+            body: 'history is required and must not be empty'
           });
         }
 
@@ -99,7 +101,10 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           });
         }
 
-        // Format the request for OpenAI
+        // Format the request for OpenAI with full conversation history
+        const lastMessage = history[history.length - 1];
+        const previousMessages = history.slice(0, -1);
+
         const requestBody = {
           model: model,
           messages: [
@@ -107,18 +112,19 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
               role: "system",
               content: "You are a senior SecOps analyst using Wazuh. Analyze the data provided by the user. Be concise, technical, and format output in Markdown."
             },
+            ...previousMessages.map(msg => ({ role: msg.role, content: msg.content })),
             ...(images && images.length > 0
               ? [
                   {
                     role: "user",
                     content: [
-                      { type: "text", text: fullPrompt },
+                      { type: "text", text: lastMessage.content },
                       ...images
                     ]
                   }
                 ]
               : [
-                  { role: "user", content: fullPrompt }
+                  { role: "user", content: lastMessage.content }
                 ]
             )
           ],

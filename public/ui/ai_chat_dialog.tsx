@@ -12,7 +12,6 @@ import {
   EuiTextArea,
   EuiButton,
   EuiPanel,
-  EuiCodeBlock,
   EuiCallOut,
   EuiButtonEmpty,
   EuiSelect,
@@ -103,7 +102,30 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   };
 
   const supportsImages = (model: string) => {
-    return model === 'gpt-4o' || model === 'gpt-4o-mini';
+    return model === 'gpt-4o' || model === 'gpt-4o-mini' || model === 'gpt-5.2';
+  };
+
+  const renderWithLinks = (text: string): React.ReactNode => {
+    const regex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)|https?:\/\/[^\s<>"'\)\]]+/g;
+    const nodes: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    let key = 0;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        nodes.push(text.slice(lastIndex, match.index));
+      }
+      if (match[1] !== undefined) {
+        nodes.push(<a key={key++} href={match[2]} target="_blank" rel="noopener noreferrer">{match[1]}</a>);
+      } else {
+        nodes.push(<a key={key++} href={match[0]} target="_blank" rel="noopener noreferrer">{match[0]}</a>);
+      }
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) {
+      nodes.push(text.slice(lastIndex));
+    }
+    return <>{nodes}</>;
   };
 
   useEffect(() =>{
@@ -127,7 +149,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
               options={[
                 { value: 'gpt-4o-mini', text: '4o-mini' },
                 { value: 'gpt-4o', text: '4o' },
-                { value: 'o1-mini', text: 'o1-mini' },
+                { value: 'gpt-5.2', text: 'gpt-5.2' },
               ]}
               value={selectedModel}
               onChange={(e) => onModelChange(e.target.value)}
@@ -198,16 +220,11 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 </EuiPanel>
                ) : (
                  <EuiPanel paddingSize="s" hasShadow={false} style={{ marginRight: '5%' }}>
-                  <EuiCodeBlock
-                    isCopyable={true}
-                    language="markdown"
-                    fontSize="m"
-                    paddingSize="s"
-                    overflowHeight={500}
-                    whiteSpace="pre-wrap"
-                  >
-                    {msg.content}
-                  </EuiCodeBlock>
+                  <EuiText size="s">
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace' }}>
+                      {renderWithLinks(msg.content)}
+                    </div>
+                  </EuiText>
                  </EuiPanel>
                )}
                <EuiSpacer size="m" />
@@ -253,12 +270,12 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
         )}
         <EuiFlexGroup gutterSize="s">
           <EuiFlexItem>
-            {selectedModel === 'o1-mini' ? (
-              <EuiTextArea
-              placeholder="Type your message..."
+            <EuiTextArea
+              placeholder="Type your message or paste an image from clipboard..."
               value={inputValue}
               onChange={onInputChange}
               fullWidth
+              onPaste={handlePaste}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -266,22 +283,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
                 }
               }}
               disabled={isLoading}
-            /> ) : (
-
-              <EuiTextArea
-                placeholder="Type your message or paste an image from clipboard..."
-                value={inputValue}
-                onChange={onInputChange}
-                fullWidth
-                onPaste={handlePaste}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    onSend();
-                  }
-                }}
-                disabled={isLoading}
-            />)}
+            />
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiButton

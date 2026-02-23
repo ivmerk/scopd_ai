@@ -24,11 +24,12 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
     setIsLoading(true);
     setError(null);
     setInputValue('');
-    setMessages((prev) => [...prev, { role: 'user', content: currentPrompt }]);
+    const updatedMessages = [...messages, { role: 'user', content: currentPrompt }] as ChatMessage[];
+    setMessages(updatedMessages);
 
     try {
       const result = await http.post('/api/scopd-ai/ask', {
-        body: JSON.stringify({ fullPrompt: currentPrompt, model: selectedModel, images: await processImagesForApi(selectedImages) }),
+        body: JSON.stringify({ history: updatedMessages, model: selectedModel, images: await processImagesForApi(selectedImages) }),
         headers: {
           'Content-Type': 'application/json',
           'kbn-xsrf': 'true'  // Required for OpenSearch Dashboards API requests
