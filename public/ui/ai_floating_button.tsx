@@ -17,6 +17,7 @@ export const AiFloatingButton: React.FC<Props> = ({ http }: Props) => {
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const [missingToken, setMissingToken] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [isFullWidth, setIsFullWidth] = useState(false);
 
   const handleReply = async () => {
     if (!inputValue) return;
@@ -140,6 +141,8 @@ const fileToBase64 = (file: File): Promise<string> =>
         initialSettingsOpen={missingToken}
         selectedImages={selectedImages}
         onImagesChange={setSelectedImages}
+        isFullWidth={isFullWidth}
+        onToggleFullWidth={() => setIsFullWidth(!isFullWidth)}
       />
       }
     </>

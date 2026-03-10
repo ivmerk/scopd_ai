@@ -42,6 +42,8 @@ interface AiChatDialogProps {
   initialSettingsOpen?: boolean;
   selectedImages: File[];
   onImagesChange: (files: File[]) => void;
+  isFullWidth: boolean;
+  onToggleFullWidth: () => void;
 }
 
 export const AiChatDialog: React.FC<AiChatDialogProps> = ({
@@ -57,7 +59,9 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   onModelChange,
   onSaveToken, initialSettingsOpen = false,
   selectedImages,
-  onImagesChange
+  onImagesChange,
+  isFullWidth,
+  onToggleFullWidth
 }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -134,7 +138,7 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
   return (
     <EuiFlyout
       onClose={onClose}
-      size="s"
+      size={isFullWidth ? '100%' : 's'}
       aria-labelledby="aiChatDialogTitle"
     >
       <EuiFlyoutHeader hasBorder>
@@ -154,6 +158,15 @@ export const AiChatDialog: React.FC<AiChatDialogProps> = ({
               value={selectedModel}
               onChange={(e) => onModelChange(e.target.value)}
               compressed
+            />
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiButtonEmpty
+              iconType={isFullWidth ? 'minimize' : 'fullScreen'}
+              color="text"
+              size="s"
+              onClick={onToggleFullWidth}
+              aria-label={isFullWidth ? 'Collapse' : 'Expand'}
             />
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
